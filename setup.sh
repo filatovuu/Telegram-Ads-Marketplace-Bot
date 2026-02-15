@@ -54,7 +54,7 @@ ask() {
     # Update the file: replace existing line or append
     if grep -q "^${var}=" "$file" 2>/dev/null; then
         # Use | as sed delimiter to avoid conflicts with URLs
-        sed -i '' "s|^${var}=.*|${var}=${value}|" "$file"
+        sed -i "s|^${var}=.*|${var}=${value}|" "$file"
     else
         echo "${var}=${value}" >> "$file"
     fi
@@ -122,7 +122,7 @@ CURRENT_WH_SECRET=$(grep "^BOT_WEBHOOK_SECRET=" "$BOT" 2>/dev/null | cut -d'=' -
 if [ -z "$CURRENT_WH_SECRET" ] || [ "$CURRENT_WH_SECRET" = "random-webhook-secret" ]; then
     if confirm "Generate random webhook secret?"; then
         WH_SECRET=$(generate_secret)
-        sed -i '' "s|^BOT_WEBHOOK_SECRET=.*|BOT_WEBHOOK_SECRET=${WH_SECRET}|" "$BOT"
+        sed -i "s|^BOT_WEBHOOK_SECRET=.*|BOT_WEBHOOK_SECRET=${WH_SECRET}|" "$BOT"
         echo -e "  ${DIM}Generated: ${WH_SECRET:0:16}...${NC}"
     else
         ask "BOT_WEBHOOK_SECRET" "Webhook secret" "" "$BOT"
@@ -142,7 +142,7 @@ CURRENT_JWT=$(grep "^APP_JWT_SECRET=" "$BACKEND" 2>/dev/null | cut -d'=' -f2-)
 if [ -z "$CURRENT_JWT" ] || [ "$CURRENT_JWT" = "change-me-in-production" ]; then
     if confirm "Generate random JWT secret?"; then
         JWT_SECRET=$(generate_secret)
-        sed -i '' "s|^APP_JWT_SECRET=.*|APP_JWT_SECRET=${JWT_SECRET}|" "$BACKEND"
+        sed -i "s|^APP_JWT_SECRET=.*|APP_JWT_SECRET=${JWT_SECRET}|" "$BACKEND"
         echo -e "  ${DIM}Generated: ${JWT_SECRET:0:16}...${NC}"
     else
         ask "APP_JWT_SECRET" "JWT secret" "" "$BACKEND"
