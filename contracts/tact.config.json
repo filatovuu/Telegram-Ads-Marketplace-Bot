@@ -1,0 +1,9 @@
+{
+  "projects": [
+    {
+      "name": "escrow",
+      "path": "./escrow.tact",
+      "output": "./output"
+    }
+  ]
+}

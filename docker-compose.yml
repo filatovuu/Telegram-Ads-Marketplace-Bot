@@ -1,0 +1,133 @@
+x-backend-service: &backend-service
+  restart: unless-stopped
+  env_file:
+    - ./config/env/.core.env
+    - ./config/env/.backend.env
+    - ./config/env/.bot.env
+  environment:
+    APP_DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-marketplace}
+    APP_REDIS_URL: redis://:${REDIS_PASSWORD:-redis}@redis:6379/0
+    APP_MINI_APP_URL: https://${DOMAIN:-localhost}
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  networks:
+    - internal
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-marketplace}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: redis-server --requirepass ${REDIS_PASSWORD:-redis}
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - internal
+
+  backend:
+    <<: *backend-service
+    build:
+      context: .
+      dockerfile: ./config/docker/Dockerfile.backend
+      target: prod
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    command: gunicorn app.main:app --bind 0.0.0.0:8000 --workers 4 --worker-class uvicorn.workers.UvicornWorker --access-logfile - --error-logfile -
+
+  bot:
+    build:
+      context: .
+      dockerfile: ./config/docker/Dockerfile.bot
+    restart: unless-stopped
+    env_file:
+      - ./config/env/.core.env
+      - ./config/env/.bot.env
+    environment:
+      BOT_BACKEND_URL: http://backend:8000
+      BOT_WEBHOOK_URL: https://${DOMAIN:-localhost}/bot/webhook
+      BOT_MINI_APP_URL: https://${DOMAIN:-localhost}
+    depends_on:
+      backend:
+        condition: service_healthy
+    command: gunicorn app.main:app --bind 0.0.0.0:8001 --workers 1 --worker-class uvicorn.workers.UvicornWorker --access-logfile - --error-logfile -
+    networks:
+      - internal
+
+  worker:
+    <<: *backend-service
+    build:
+      context: .
+      dockerfile: ./config/docker/Dockerfile.backend
+      target: prod
+    command: celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
+
+  beat:
+    <<: *backend-service
+    build:
+      context: .
+      dockerfile: ./config/docker/Dockerfile.backend
+      target: prod
+    command: celery -A app.workers.celery_app beat --loglevel=info
+
+  frontend:
+    build:
+      context: .
+      dockerfile: ./config/docker/Dockerfile.frontend
+      target: prod
+      args:
+        DOMAIN: ${DOMAIN:-localhost}
+        BOT_USERNAME: ${BOT_USERNAME:-}
+    restart: unless-stopped
+    env_file:
+      - ./config/env/.core.env
+      - ./config/env/.bot.env
+    networks:
+      - internal
+
+  nginx:
+    image: nginx:stable
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+      - bot
+      - frontend
+    networks:
+      - internal
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  internal:
+    driver: bridge

@@ -1,0 +1,10 @@
+{
+  "name": "escrow-contracts",
+  "private": true,
+  "scripts": {
+    "build": "tact --config tact.config.json"
+  },
+  "devDependencies": {
+    "@tact-lang/compiler": "^1.5.0"
+  }
+}

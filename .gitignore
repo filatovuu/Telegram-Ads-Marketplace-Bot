@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+*.egg
+.ruff_cache/
+celerybeat-schedule
+
+# Node
+node_modules/
+dist/
+.vite/
+
+# Generated at build time by Vite plugin (vite.config.ts)
+frontend/public/tc/
+
+# Tact smart contract compilation output
+contracts/output/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Docker
+docker-compose.override.yml
+
+# Config secrets
+config/env/
+config/certs/
+
+# Claude Code
+.claude/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Logs
+*.log

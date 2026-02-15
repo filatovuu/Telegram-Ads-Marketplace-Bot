@@ -1,0 +1,39 @@
+# Version control & project meta
+.git
+.github
+.gitignore
+.dockerignore
+
+# Documentation & root files not needed in builds
+docs
+README.md
+Makefile
+setup.sh
+docker.sh
+docker-compose*.yml
+
+# Smart contracts (not used by app containers)
+contracts
+
+# Secrets (injected at runtime via env_file / volumes)
+config/env/
+config/certs/
+
+# Python artifacts
+**/.venv
+**/__pycache__
+**/.pytest_cache
+**/.ruff_cache
+**/.coverage
+**/htmlcov
+**/celerybeat-schedule
+
+# Node artifacts
+**/node_modules
+**/dist
+**/.vite
+frontend/public/tc/manifest.json
+
+# OS & misc
+**/.DS_Store
+**/*.log

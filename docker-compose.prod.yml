@@ -1,0 +1,9 @@
+services:
+  nginx:
+    ports:
+      - "443:443"
+    env_file:
+      - ./config/env/.core.env
+    volumes:
+      - ./config/nginx/nginx-prod-template.conf:/etc/nginx/templates/default.conf.template:ro
+      - ./config/certs:/etc/nginx/certs:ro
