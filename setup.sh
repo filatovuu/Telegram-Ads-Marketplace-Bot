@@ -35,7 +35,7 @@ ask() {
     local current value
 
     # Read current value from file (strip quotes)
-    current=$(grep "^${var}=" "$file" 2>/dev/null | head -1 | cut -d'=' -f2- | sed 's/^"//;s/"$//')
+    current=$(grep "^${var}=" "$file" 2>/dev/null | head -1 | cut -d'=' -f2- | sed 's/^"//;s/"$//' || :)
 
     # Use current if it's not the template placeholder
     if [ -n "$current" ] && [ "$current" != "$default" ]; then
@@ -118,7 +118,7 @@ echo -e "  ${DIM}Webhook URL:  https://${DOMAIN}/bot/webhook  (auto from DOMAIN)
 echo -e "  ${DIM}Mini App URL: https://${DOMAIN}              (auto from DOMAIN)${NC}"
 
 # Auto-generate webhook secret
-CURRENT_WH_SECRET=$(grep "^BOT_WEBHOOK_SECRET=" "$BOT" 2>/dev/null | cut -d'=' -f2-)
+CURRENT_WH_SECRET=$(grep "^BOT_WEBHOOK_SECRET=" "$BOT" 2>/dev/null | cut -d'=' -f2- || :)
 if [ -z "$CURRENT_WH_SECRET" ] || [ "$CURRENT_WH_SECRET" = "random-webhook-secret" ]; then
     if confirm "Generate random webhook secret?"; then
         WH_SECRET=$(generate_secret)
@@ -138,7 +138,7 @@ echo -e "${BOLD}${GREEN}3/3${NC} ${BOLD}Backend settings${NC} ${DIM}(config/env/
 echo ""
 
 # Auto-generate JWT secret
-CURRENT_JWT=$(grep "^APP_JWT_SECRET=" "$BACKEND" 2>/dev/null | cut -d'=' -f2-)
+CURRENT_JWT=$(grep "^APP_JWT_SECRET=" "$BACKEND" 2>/dev/null | cut -d'=' -f2- || :)
 if [ -z "$CURRENT_JWT" ] || [ "$CURRENT_JWT" = "change-me-in-production" ]; then
     if confirm "Generate random JWT secret?"; then
         JWT_SECRET=$(generate_secret)
