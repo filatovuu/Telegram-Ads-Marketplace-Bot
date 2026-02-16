@@ -276,7 +276,6 @@ async def _check_team_permission_for_action(
     Also re-checks Telegram admin status for state-changing actions.
     """
     from app.services.team_permissions import (
-        check_telegram_admin_cached,
         get_team_membership,
         has_permission,
     )
@@ -317,20 +316,6 @@ async def _check_team_permission_for_action(
             detail=f"You do not have the '{required}' permission for this action",
         )
 
-    # Re-check Telegram admin status for all state-changing actions
-    channel_result = await db.execute(
-        select(Channel).where(Channel.id == listing.channel_id)
-    )
-    channel = channel_result.scalar_one_or_none()
-    if channel:
-        is_admin = await check_telegram_admin_cached(
-            channel.telegram_channel_id, user.telegram_id
-        )
-        if not is_admin:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You are no longer an admin of this channel in Telegram.",
-            )
 
 
 async def update_deal_brief(
